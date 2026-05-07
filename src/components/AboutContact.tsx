@@ -1,18 +1,42 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import AnimatedSection from './AnimatedSection';
 import gsap from 'gsap';
-import { useEffect, useRef } from 'react';
 
 export default function AboutContact() {
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Formspree will handle the rest; just show confirmation
-    setSubmitted(true);
-    (e.target as HTMLFormElement).reset();
+    setIsSubmitting(true);
+    setError('');
+
+    const formData = new FormData(e.target as HTMLFormElement);
+
+    try {
+      const response = await fetch('https://formspree.io/f/xgodypoy', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+        (e.target as HTMLFormElement).reset();
+      } else {
+        const data = await response.json();
+        setError(data.error || 'Something went wrong. Please try again.');
+      }
+    } catch (err) {
+      setError('Network error. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   useEffect(() => {
@@ -80,8 +104,6 @@ export default function AboutContact() {
             {!submitted ? (
               <form
                 ref={formRef}
-                action="https://formspree.io/f/xgodypoy"
-                method="POST"
                 onSubmit={handleSubmit}
                 className="space-y-5"
               >
@@ -105,9 +127,18 @@ export default function AboutContact() {
                   <label htmlFor="message" className="block font-mono text-xs tracking-wider uppercase text-ny-gray mb-1">Message</label>
                   <textarea name="message" id="message" rows={5} required className="w-full px-4 py-2 border border-ny-border rounded focus:outline-none focus:ring-2 focus:ring-black/10" />
                 </div>
+                {error && (
+                  <div className="text-red-600 text-sm text-center font-mono">
+                    {error}
+                  </div>
+                )}
                 <div className="text-center">
-                  <button type="submit" className="font-mono text-xs tracking-widest uppercase bg-black text-white px-8 py-3 rounded-full hover:bg-transparent hover:text-black border border-black transition-all hover:shadow-lg">
-                    Send Message
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="font-mono text-xs tracking-widest uppercase bg-black text-white px-8 py-3 rounded-full hover:bg-transparent hover:text-black border border-black transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? 'Sending...' : 'Send Message'}
                   </button>
                 </div>
               </form>
