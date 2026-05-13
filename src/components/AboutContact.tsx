@@ -149,7 +149,7 @@ export default function AboutContact() {
             )}
             <p className="text-center mt-6 font-mono text-xs text-ny-gray">
               Or reach out directly:{' '}
-              <a href="mailto:hello@nyurox.com" className="underline">contact@nyurox.tech</a>
+              <a href="mailto:contact@nyurox.tech" className="underline">contact@nyurox.tech</a>
             </p>
           </div>
         </AnimatedSection>
